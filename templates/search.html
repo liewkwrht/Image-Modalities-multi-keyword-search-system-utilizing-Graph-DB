@@ -1,0 +1,202 @@
+<!-- search.html -->
+<!-- search.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Neo4j Search</title>
+
+    <!-- Include the Select2 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+
+    <!-- Include jQuery (required for Select2) -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+    <!-- Include the Select2 JavaScript -->
+    <script 
+    src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+    <style>
+        /* Adjust the width of the dropdown container */
+        #symptoms {
+            width: 300px; /* Adjust the width as needed */
+        }
+    </style>
+    
+</head>
+
+<body>
+    <h1>Neo4j Search</h1>
+    <form id="searchForm">
+        <label for="name">Name:</label>
+        <input type="text" id="name" placeholder="Enter Name">
+        <br><br>
+
+        <label for="id">ID:</label>
+        <input type="text" id="id" placeholder="Enter ID">
+        <br><br>
+
+        <label for="disease">Disease:</label>
+        <select id="disease">
+            <option value="cancer">Cancer</option>
+            <option value="bone_fractures">Bone Fractures</option>
+            <option value="pneumonia">Pneumonia</option>
+            <option value="kidney_stones">Kidney Stones</option>
+            <option value="head_trauma">Head Trauma</option>
+            <option value="osteoarthritis">Osteoarthritis</option>
+            <option value="spinal_disc_herniation">Spinal Disc Herniation</option>
+            <option value="osteoporosis">Osteoporosis</option>
+            <option value="tuberculosis">Tuberculosis</option>
+            <option value="traumatic_injuries">Traumatic Injuries</option>
+            <option value="appendicitis">Appendicitis</option>
+            <option value="blood_clots">Blood Clots</option>
+            <option value="abdominal_tumors">Abdominal Tumors</option>
+            <option value="spinal_cord_injuries">Spinal Cord Injuries</option>
+            <option value="stroke">Stroke</option>
+            <option value="joint_injuries">Joint Injuries</option>
+        </select>
+        <br><br>
+
+        <label for="bodyPart">Body Part:</label>
+        <select id="bodyPart">
+           <!-- Add more body part options as needed -->
+            <option value="null">Don't select</option> 
+            <option value="breast">Breast</option>
+            <option value="wrist">Wrist</option>
+            <option value="herniated_disc">Herniated Disc</option>
+            <option value="stomach">Stomach</option>
+            <option value="ovaries">Ovaries</option>
+            <option value="shoulder">Shoulder</option>
+            <option value="esophagus">Esophagus</option>
+            <option value="brain">Brain</option>
+            <option value="lung">Lung</option>
+            <option value="knee">Knee</option>
+            <option value="leg">Leg</option>
+            <option value="arm">Arm</option>
+            <option value="head">Head</option>
+            <option value="blood_system">Blood System</option>
+            <option value="heart">Heart</option>
+            <option value="thyroid">Thyroid</option>
+            <option value="testicles">Testicles</option>
+            <option value="bladder">Bladder</option>
+            <option value="kidney">Kidney</option>
+            <option value="Liver">Liver</option>
+
+            <!-- Add more body part options as needed -->
+        </select>
+        <br><br>
+
+        <label for="symptoms">Symptoms:</label>
+        <select id="symptoms" multiple>
+            <option value="null">Don't select</option>
+            <option value="pain">Pain</option>
+            <option value="bone_protruding">Bone Protruding</option>
+            <option value="ache_pain">Ache Pain</option>
+            <option value="neurological">Neurological</option>
+            <option value="fatigue">Fatigue</option>
+            <option value="headache">Headache</option>
+            <option value="breathing_difficulties">Breathing Difficulties</option>
+            <option value="skin_changes">Skin Changes</option>
+            <option value="nausea">Nausea</option>
+            <option value="changes_in_urination">Changes in Urination</option>
+            <option value="changes_in_vision">Changes in Vision</option>
+            <option value="fever">Fever</option>
+            <option value="swelling">Swelling</option>
+            <option value="limited_mobility">Limited Mobility</option>
+            <option value="cough">Cough</option>
+            <option value="vomiting">Vomiting</option>
+            <option value="blood_in_your_urine">Blood in Your Urine</option>
+            <option value="problems_with_movement">Problems with Movement</option>
+            <option value="speech_difficulty">Speech Difficulty</option>
+        </select>
+            <!-- Add more symptom options as needed -->
+        <button type="button" onclick="searchNeo4j()">Search Neo4j</button>
+        <script>
+            // Initialize Select2 on the symptoms dropdown
+            $(document).ready(function() {
+                $('#symptoms').select2({
+                    multiple: true,
+                    tags: true,
+                    tokenSeparators: [','],
+                    placeholder: 'Select symptoms'
+                });
+            });
+
+    // Function to handle the form submission and make an API call
+            async function searchNeo4j() {
+                // Get values from form fields
+                const name = document.getElementById('name').value;
+                const id = document.getElementById('id').value;
+                const disease = document.getElementById('disease').value;
+                const bodyPart = document.getElementById('bodyPart').value;
+                const symptoms = $('#symptoms').val(); // Using jQuery for Select2
+
+                // Construct search data object
+                const searchData = {
+                    name,
+                    id,
+                    disease,
+                    bodyPart,
+                    symptoms
+                };
+
+                // Call the API with the search data
+                const results = await fetchNeo4jData(searchData);
+
+                // Display the results
+                displayResults(results);
+            }
+        
+            // Function to handle the search button click
+            async function fetchNeo4jData(searchData) {
+            try {
+                const response = await fetch('/api/search', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(searchData)
+                });
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                return await response.json();
+            } catch (error) {
+                console.error('Error fetching data:', error);
+            }
+        }
+
+        function displayResults(data) {
+        const resultsList = document.getElementById('resultsList');
+        resultsList.innerHTML = '';
+
+        data.forEach(result => {
+            const listItem = document.createElement('li');
+            listItem.textContent = JSON.stringify(result);
+            resultsList.appendChild(listItem);
+        });
+    }
+
+// You would call `fetchNeo4jData` from your search event handler, passing the search criteria
+        async function fetchNeo4jData(searchData) {
+            try {
+                const response = await fetch('http://127.0.0.1:5000/api/search', { // Your API endpoint
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(searchData)
+                });
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                return await response.json();
+            } catch (error) {
+                console.error('Error fetching data:', error);
+            }
+        }
+        document.getElementById('searchForm').addEventListener('submit', function(event) {
+            event.preventDefault();
+            searchNeo4j();
+        });
+    </script>
