@@ -1,0 +1,6 @@
+{
+  "dependencies": {
+    "cors": "^2.8.5",
+    "neo4j-driver": "^5.14.0"
+  }
+}
