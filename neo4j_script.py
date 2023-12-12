@@ -30,10 +30,10 @@ class Neo4jConnector:
         return self._driver.session()
     
     
-    def search_nodes_by_name(self, bodyPartName, symptomName, diseaseName, targetClasses=None):
+    def search_nodes_by_name(self,name,id,bodyPartName, symptomName, diseaseName, targetClasses=None):
         with self.get_session() as session:
 
-            inputNames = [bodyPartName] + symptomName + [diseaseName] 
+            inputNames = [name] + [id] + [bodyPartName] + symptomName + [diseaseName] 
             inputNames = [name for name in inputNames if name]
 
             
@@ -52,14 +52,17 @@ class Neo4jConnector:
                     "WHERE node.name IN inputNames "
                 )
 
+    
             query += "RETURN DISTINCT p;"
+
+            
             parameters = {'inputNames': inputNames}
             
             
             if targetClasses:
                 parameters['targetClasses'] = targetClasses
 
-    
+            
             result = session.run(query, parameters=parameters)
             records = list(result)
 
@@ -68,7 +71,7 @@ class Neo4jConnector:
         for record in records:
             path = record['p']
             
-            # Extract nodes and relationships from the path
+            
             nodes = [{'id': node.id, 'labels': list(node.labels), 'properties': dict(node)} for node in path.nodes]
             relationships = [{'id': rel.id, 'type': rel.type, 'properties': dict(rel)} for rel in path.relationships]
             path_data = {'nodes': nodes, 'relationships': relationships}
