@@ -22,15 +22,17 @@ def search():
 
     try:
         start_time = time.time()
-        # Pass target_classes to the search method
         serializable_result = neo4j_connector.search_nodes_by_name(body_part_name, symptom_name, disease_name, target_classes)
         execution_time = time.time() - start_time
 
+        # Convert execution time to milliseconds
+        execution_time_ms = execution_time * 1000
+
         if not serializable_result:
-            return jsonify({'execution_time': execution_time, 'data': []}), 204
+            return jsonify({'execution_time_ms': execution_time_ms, 'data': []}), 204
 
         response = {
-            "execution_time": execution_time,
+            "execution time": execution_time_ms,  # Reporting time in milliseconds
             "data": serializable_result
         }
 

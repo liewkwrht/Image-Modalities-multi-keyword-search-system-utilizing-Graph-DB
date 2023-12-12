@@ -30,42 +30,49 @@ class Neo4jConnector:
         return self._driver.session()
     
     
-    def search_nodes_by_name(self, bodyPartName, symptomName, diseaseName, imageType=None):
-            with self.get_session() as session:
-                # Start building your query string
-                query = (
+    def search_nodes_by_name(self, bodyPartName, symptomName, diseaseName, targetClasses=None):
+        with self.get_session() as session:
+            # Define input names
+            inputNames = [name for name in [bodyPartName, symptomName, diseaseName] if name]
+
+            # Start building your query string
+            query = "WITH $inputNames AS inputNames "
+
+            # Add target classes to the query if provided
+            if targetClasses:
+                query += ", $targetClasses AS targetClasses "
+                query += (
                     "MATCH p=(node:BodyPart|Symptom|Disease|Name)-[:Risk|AssociatedWith|Indicate|Affect|Own_image|Has_image*1]->(target) "
-                    "WHERE node.name IN $inputNames "
+                    "WHERE node.name IN inputNames AND LABELS(target)[0] IN targetClasses "
                 )
-                
-                # If an imageType is specified, add that to the WHERE clause
-                if imageType:
-                    query += "AND $imageType IN labels(target) "
-                
-                # Finish off your query
-                query += "RETURN DISTINCT p;"
+            else:
+                query += (
+                    "MATCH p=(node:BodyPart|Symptom|Disease|Name)-[:Risk|AssociatedWith|Indicate|Affect|Own_image|Has_image*1]->(target) "
+                    "WHERE node.name IN inputNames "
+                )
 
-                # Create parameters dictionary
-                parameters = {
-                    'inputNames': [bodyPartName, symptomName, diseaseName]
-                }
-                
-                # If an imageType is specified, add that to the parameters
-                if imageType:
-                    parameters['imageType'] = imageType
+            # Finish off your query
+            query += "RETURN DISTINCT p;"
 
-                # Run the query
-                result = session.run(query, parameters=parameters)
-                records = list(result)
+            # Create parameters dictionary
+            parameters = {'inputNames': inputNames}
+            
+            # Add targetClasses to parameters if provided
+            if targetClasses:
+                parameters['targetClasses'] = targetClasses
 
-            # Process the records to serialize the paths
-            serializable_result = []
-            for record in records:
-                path = record['p']
-                # Extract nodes and relationships from the path
-                nodes = [{'id': node.id, 'labels': list(node.labels), 'properties': dict(node)} for node in path.nodes]
-                relationships = [{'id': rel.id, 'type': rel.type, 'properties': dict(rel)} for rel in path.relationships]
-                path_data = {'nodes': nodes, 'relationships': relationships}
-                serializable_result.append(path_data)
+            # Run the query
+            result = session.run(query, parameters=parameters)
+            records = list(result)
 
-            return serializable_result
+        # Process the records to serialize the paths
+        serializable_result = []
+        for record in records:
+            path = record['p']
+            # Extract nodes and relationships from the path
+            nodes = [{'id': node.id, 'labels': list(node.labels), 'properties': dict(node)} for node in path.nodes]
+            relationships = [{'id': rel.id, 'type': rel.type, 'properties': dict(rel)} for rel in path.relationships]
+            path_data = {'nodes': nodes, 'relationships': relationships}
+            serializable_result.append(path_data)
+
+        return serializable_result
