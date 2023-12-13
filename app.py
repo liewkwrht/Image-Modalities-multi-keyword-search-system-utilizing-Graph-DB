@@ -4,6 +4,7 @@ from config import NEO4J_URI, NEO4J_USERNAME, NEO4J_PASSWORD
 from flask_cors import CORS
 import logging
 import time
+from collections import defaultdict
 
 app = Flask(__name__)
 CORS(app)
@@ -26,7 +27,17 @@ def search():
         start_time = time.time()
         serializable_result = neo4j_connector.search_nodes_by_name(name,id,body_part_name, symptom_name, disease_name, target_classes)
         execution_time = time.time() - start_time
+        nodes_by_label = defaultdict(list)
+        label_counts = defaultdict(int)
 
+        for path_data in serializable_result:
+            for node in path_data['nodes']:
+                for label in node['labels']:
+                    nodes_by_label[label].append(node)
+                    label_counts[label] += 1
+
+        
+        organized_data = {label: {'count': label_counts[label], 'nodes': nodes} for label, nodes in nodes_by_label.items()}
         unique_uids = set()
         for path_data in serializable_result:
             for node in path_data['nodes']:
@@ -34,12 +45,12 @@ def search():
                     unique_uids.add(node['properties']['uid'])
 
         uid_count = len(unique_uids)
-
         response = {
-            "execution time (s)": execution_time,
-            "data": serializable_result,
-            "unique_uid_count": uid_count  
-        }
+                    "execution_time": execution_time,
+                    "data": organized_data, 
+                    "unique_uid_count": uid_count  
+                }
+
 
         return jsonify(response), 200
     except Exception as e:
