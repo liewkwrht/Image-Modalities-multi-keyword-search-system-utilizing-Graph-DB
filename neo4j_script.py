@@ -31,9 +31,9 @@ class Neo4jConnector:
         return self._driver.session()
 
 
-    def search_nodes_by_name(self, name, id, bodyPartName, symptomName, diseaseName, targetClasses=None):
+    def search_nodes_by_name(self, name, patient_id, bodyPartName, symptomName, diseaseName, targetClasses=None):
         with self.get_session() as session:
-            inputNames = [name, id, bodyPartName] + symptomName + [diseaseName]
+            inputNames = [name, patient_id , bodyPartName] + symptomName + [diseaseName]
             inputNames = [name for name in inputNames if name]
             defaultClasses = ["X_ray", "CT", "MRI", "DSI", "US"]
 

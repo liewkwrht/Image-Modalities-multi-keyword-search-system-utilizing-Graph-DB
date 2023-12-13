@@ -17,7 +17,7 @@ neo4j_connector = Neo4jConnector(NEO4J_URI, NEO4J_USERNAME, NEO4J_PASSWORD)
 def search():
     data = request.json
     name = data.get('name')
-    id = data.get('id')
+    patient_id = data.get('patient_id')
     body_part_name = data.get('bodypart')
     disease_name = data.get('disease')
     symptom_name = data.get('symptom', [])
@@ -25,7 +25,7 @@ def search():
 
     try:
         start_time = time.time()
-        serializable_result = neo4j_connector.search_nodes_by_name(name,id,body_part_name, symptom_name, disease_name, target_classes)
+        serializable_result = neo4j_connector.search_nodes_by_name(name,patient_id,body_part_name, symptom_name, disease_name, target_classes)
         execution_time = time.time() - start_time
         nodes_by_label = defaultdict(list)
         label_counts = defaultdict(int)
