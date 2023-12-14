@@ -48,8 +48,12 @@ function displayResults(data) {
             if (data.data[modality].nodes) {
                 // Loop over each node in the 'nodes' array
                 data.data[modality].nodes.forEach(node => {
+                    // Format the display string
+                    const displayString = `C-GET [Study Instance UID = ${node.properties.uid}] [Modality = ${modality}]`;
+
+                    // Create list item and append it to the results list
                     const listItem = document.createElement('li');
-                    listItem.textContent = `Modality: ${modality}, ID: ${node.id}, Labels: ${node.labels.join(', ')}, Properties: ${JSON.stringify(node.properties)}`;
+                    listItem.textContent = displayString;
                     resultsList.appendChild(listItem);
                 });
             }
