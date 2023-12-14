@@ -31,10 +31,10 @@ class Neo4jConnector:
         return self._driver.session()
 
 
-    def search_nodes_by_name(self, name, patient_id, bodyPartName, symptomName, diseaseName, targetClasses=None):
+    def search_nodes_by_name(self, name, patient_id, bodyPartName, symptomName, disease_Name, targetClasses=None):
         with self.get_session() as session:
-            inputNames = [name, patient_id , bodyPartName] + symptomName + [diseaseName]
-            inputNames = [name for name in inputNames if name]
+            inputNames = [name, patient_id , bodyPartName] + symptomName + [disease_Name]
+            inputNames = [value for value in inputNames if value or value == 0]
             defaultClasses = ["X_ray", "CT", "MRI", "DSI", "US"]
 
             
@@ -44,20 +44,30 @@ class Neo4jConnector:
             query = "WITH $inputNames AS inputNames, $targetClasses AS targetClasses "
 
             
-            query += (
-                "OPTIONAL MATCH p1 = (node:BodyPart|Disease|Name)-[:Risk|AssociatedWith|Indicate|Affect|Own_image|Has_image*1]->(target) "
-                "WHERE node.name IN inputNames AND LABELS(target)[0] IN targetClasses "
-                "WITH target AS commonTarget, p1, inputNames, targetClasses, node "
-                "OPTIONAL MATCH p2 = (symptom:Symptom)-[:Indicate]->(disease:Disease)-[:Has_image*1]->(target) "
-                "WHERE symptom.name IN inputNames AND LABELS(target)[0] IN targetClasses AND target = commonTarget "
-                "WITH commonTarget, COLLECT(DISTINCT p1) AS paths1, COLLECT(DISTINCT p2) AS paths2, node, inputNames, symptom "
-                "WHERE ANY(path IN paths1 WHERE path IS NOT NULL) OR ANY(path IN paths2 WHERE path IS NOT NULL) "
-                "WITH commonTarget, COUNT(DISTINCT node) AS relatedNodeCount, COUNT(DISTINCT symptom) AS relatedSymptom, inputNames "
-                "WHERE relatedNodeCount = SIZE(inputNames) - relatedSymptom "
-                "RETURN DISTINCT commonTarget;"
-            )
+            query += """ 
+            OPTIONAL MATCH (n:Name)
+
+            WITH inputNames, targetClasses, CASE WHEN n.name IN inputNames AND n.id IN inputNames THEN 1 ELSE 0 END AS isnameandid 
+            OPTIONAL MATCH p1 = (node:BodyPart|Disease|Name)-[:Risk|AssociatedWith|Indicate|Affect|Own_image|Has_image*1]->(target)
+            WHERE (node.name IN inputNames OR node.id IN inputNames) AND LABELS(target)[0] IN targetClasses
+
+            WITH target AS commonTarget, p1, inputNames, targetClasses, node, isnameandid 
+
+            OPTIONAL MATCH p2 = (symptom:Symptom)-[:Indicate]->(disease:Disease)-[:Has_image*1]->(target)
+            WHERE symptom.name IN inputNames AND LABELS(target)[0] IN targetClasses AND (commonTarget IS NULL OR target = commonTarget)
+
+            WITH commonTarget, COLLECT(DISTINCT p1) AS paths1, COLLECT(DISTINCT p2) AS paths2, node, inputNames, symptom, isnameandid , target
+            WHERE ANY(path IN paths1 WHERE path IS NOT NULL) OR ANY(path IN paths2 WHERE path IS NOT NULL)
+
+            WITH commonTarget, COUNT(DISTINCT node) AS relatedNodeCount, COUNT(DISTINCT symptom) AS relatedsymptom , inputNames, isnameandid, target
+            WHERE relatedNodeCount = SIZE(inputNames) - relatedsymptom - isnameandid
+            RETURN DISTINCT commonTarget, target;
+
+            
+            """
 
             parameters = {'inputNames': inputNames, 'targetClasses': targetClasses}
+            
 
             result = session.run(query, parameters=parameters)
             records = list(result)

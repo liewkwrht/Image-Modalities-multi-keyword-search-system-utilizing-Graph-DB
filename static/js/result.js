@@ -1,17 +1,9 @@
 async function fetchAndDisplayResults() {
-    // Retrieve the search criteria from the query string
-    const urlParams = new URLSearchParams(window.location.search);
-    const searchData = {
-        name: urlParams.get('name'),
-        id: urlParams.get('id'),
-        bodypart: urlParams.get('bodyPart'), // changed from bodyPart to bodypart
-        disease: urlParams.get('disease'),
-        symptoms: urlParams.get('symptoms') // changed from symptoms to symptom
-    };
+    const searchData = JSON.parse(sessionStorage.getItem('searchData'));
 
     try {
         // Call the API with the search data
-        const response = await fetch('http://127.0.0.1:5000/api/search', {
+        const response = await fetch('/api/search', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
@@ -30,19 +22,33 @@ async function fetchAndDisplayResults() {
 }
 
 function displayResults(data) {
-    const resultsList = document.getElementById('resultsList');
-    resultsList.innerHTML = ''; // Clear previous results
+    const resultsContainer = document.getElementById('resultsContainer');
 
     // Check if data has content
-    if (data && data.length > 0) {
-        // Assuming 'data' is an array of result objects
-        data.forEach(result => {
-            const listItem = document.createElement('li');
-            listItem.textContent = `ID: ${result.id}, Labels: ${result.labels.join(', ')}, Properties: ${JSON.stringify(result.properties)}`;
-            resultsList.appendChild(listItem);
-        });
+    if (data && data.data) {
+        resultsContainer.innerHTML = ''; // Clear previous results
+
+        // Assuming 'data' is an object with 'data' property containing results
+        const resultData = data.data;
+
+        for (const label in resultData) {
+            const labelContainer = document.createElement('div');
+            labelContainer.innerHTML = `<h3>${label} (${resultData[label].count} results)</h3>`;
+
+            const nodesList = document.createElement('ul');
+            const nodes = resultData[label].nodes;
+
+            nodes.forEach(node => {
+                const listItem = document.createElement('li');
+                listItem.textContent = JSON.stringify(node.properties);
+                nodesList.appendChild(listItem);
+            });
+
+            labelContainer.appendChild(nodesList);
+            resultsContainer.appendChild(labelContainer);
+        }
     } else {
-        resultsList.innerHTML = '<li>No results found</li>';
+        resultsContainer.innerHTML = '<p>No results found</p>';
     }
 }
 

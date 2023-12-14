@@ -3,7 +3,7 @@ function searchNeo4j() {
     var name = document.getElementById('name').value;
     var id = document.getElementById('id').value;
     var disease = document.getElementById('disease').value;
-    var bodypart = document.getElementById('body_part').value;
+    var bodypart = document.getElementById('bodypart').value;
     var symptoms = $('#symptoms').val(); // Since this is a Select2 multiselect, use jQuery to get the selected values
 
     // Convert symptoms array to a string if not null or undefined

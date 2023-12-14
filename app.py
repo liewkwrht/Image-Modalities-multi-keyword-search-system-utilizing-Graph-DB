@@ -19,17 +19,26 @@ def search():
     name = data.get('name')
     patient_id = data.get('patient_id')
     body_part_name = data.get('bodypart')
-    disease_name = data.get('disease')
+    disease_Name = data.get('disease')
     symptom_name = data.get('symptom', [])
-    target_classes = data.get('targetClasses')  
+    target_classes = data.get('targetClasses')
+    # app.logger.info(f"id received: {patient_id}")
+    # app.logger.info(f"Name received: {name}")
+    # app.logger.info(f"bodypart received: {body_part_name}")
+    # app.logger.info(f"disease received: {disease_Name}")
+    # app.logger.info(f"symptom received: {symptom_name}")
+    # app.logger.info(f"targetClasses received: {target_classes}")
+
+
 
     try:
         start_time = time.time()
-        serializable_result = neo4j_connector.search_nodes_by_name(name,patient_id,body_part_name, symptom_name, disease_name, target_classes)
+        serializable_result = neo4j_connector.search_nodes_by_name(name,patient_id,body_part_name, symptom_name, disease_Name, target_classes)
         execution_time = time.time() - start_time
         nodes_by_label = defaultdict(list)
         label_counts = defaultdict(int)
 
+        
         for path_data in serializable_result:
             for node in path_data['nodes']:
                 for label in node['labels']:
@@ -63,3 +72,4 @@ def close_connection(exception=None):
 
 if __name__ == '__main__':
     app.run(debug=True, use_reloader=False)
+    
