@@ -1,4 +1,4 @@
-from flask import Flask, jsonify, request
+from flask import Flask, render_template,jsonify, request
 from neo4j_script import Neo4jConnector  # Ensure neo4j_script.py is in the same directory and has the correct implementation
 from config import NEO4J_URI, NEO4J_USERNAME, NEO4J_PASSWORD
 from flask_cors import CORS
@@ -7,13 +7,31 @@ import time
 from collections import defaultdict
 
 app = Flask(__name__)
-CORS(app)
+CORS(app, resources={r"/api/*": {"origins": "http://127.0.0.1:5500"}})
 logging.basicConfig(level=logging.INFO)
 
 def get_neo4j_connector():
     return Neo4jConnector(NEO4J_URI, NEO4J_USERNAME, NEO4J_PASSWORD)
+@app.route('/')
+def search_page():
+    return render_template('search.html')
+
+@app.route('/result')
+def result():
+    # Capture query parameters if needed to pass to the template
+    patient_id = request.args.get('patient_id')
+    symptoms = request.args.get('symptoms')
+    target_classes = request.args.get('targetClasses')
+    
+    # Pass the captured parameters to the template
+    return render_template('result.html', 
+        patient_id=patient_id,
+        symptoms=symptoms, 
+        target_classes=target_classes)
+
 
 @app.route('/api/search', methods=['POST'])
+
 def search():
     neo4j_connector = get_neo4j_connector()
     try:
@@ -70,5 +88,6 @@ def search():
         neo4j_connector.close()
 
 if __name__ == '__main__':
-    app.run(debug=True, use_reloader=False)
+    app.run(debug=True, use_reloader=False, port=5500)
+
     

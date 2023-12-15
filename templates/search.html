@@ -133,16 +133,18 @@
             <label for="us">US</label><br>
             </div>
         <button type="submit">Search</button>
-            
+        <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+
+        <script src="/path/to/your/result.js"></script>
         <script>
-            $(document).ready(function() {
-                // Initialize Select2 component for the symptoms dropdown
-                $('#symptoms').select2({
-                    placeholder: "Select symptoms", // This sets the placeholder
-                    allowClear: true, // This allows a clear button to appear
-                    multiple: true,
-                    tags: true,
-                    tokenSeparators: [',']
+        $(document).ready(function() {
+                    $('#symptoms').select2({
+                        placeholder: "Select symptoms", // This sets the placeholder
+                        allowClear: true, // This allows a clear button to appear
+                        multiple: true,
+                        tags: true,
+                        tokenSeparators: [',']
                 });
         
                 // Form submission handler
@@ -170,11 +172,15 @@
         
                     // Redirect to the results page with query parameters
                     const searchParams = new URLSearchParams(searchData).toString();
-                    window.location.href = `result.html?${searchParams}`;
+                    // Redirect to the results page with query parameters
+                    window.location.href = `/result?${searchParams}`;
+
                 });
             });
             
 
         </script>
+        <script src="{{ url_for('static', filename='js/result.js') }}"></script>
+
 </body>
 </html>
