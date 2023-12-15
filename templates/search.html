@@ -52,7 +52,7 @@
             const id = $('#id').val();
             const disease = $('#disease').val();
             const bodyPart = $('#bodypart').val();
-            const symptoms = $('#symptoms').val() || []; // Using jQuery for Select2
+            const symptoms = $('#symptoms').val() || [];// Using jQuery for Select2
             const targetClasses = $('#targetClasses').val() || []; // Using jQuery for Select2
     
             // Construct the search data object
@@ -91,77 +91,88 @@
         <label for="bodypart">Body Part:</label>
         <select id="bodypart" name = "bodypart">
         <!-- Add more body part options as needed -->
+            <option value="" selected disabled>Select Body Part</option>
             <option value="null">Don't select</option> 
-            <option value="breast">Breast</option>
-            <option value="wrist">Wrist</option>
-            <option value="herniated_disc">Herniated Disc</option>
-            <option value="stomach">Stomach</option>
-            <option value="ovaries">Ovaries</option>
-            <option value="shoulder">Shoulder</option>
-            <option value="esophagus">Esophagus</option>
-            <option value="brain">Brain</option>
-            <option value="lung">Lung</option>
-            <option value="knee">Knee</option>
-            <option value="leg">Leg</option>
-            <option value="arm">Arm</option>
+            <option value="Breast">Breast</option>
+            <option value="Wrist">Wrist</option>
+            <option value="Herniated_Disc">Herniated Disc</option>
+            <option value="Stomach">Stomach</option>
+            <option value="Ovaries">Ovaries</option>
+            <option value="Shoulder">Shoulder</option>
+            <option value="Esophagus">Esophagus</option>
+            <option value="Brain">Brain</option>
+            <option value="Lung">Lung</option>
+            <option value="Knee">Knee</option>
+            <option value="Leg">Leg</option>
+            <option value="Arm">Arm</option>
             <option value="Head">Head</option>
-            <option value="blood_system">Blood System</option>
-            <option value="heart">Heart</option>
-            <option value="thyroid">Thyroid</option>
-            <option value="testicles">Testicles</option>
-            <option value="bladder">Bladder</option>
-            <option value="kidney">Kidney</option>
+            <option value="BloodSystem">Blood System</option>
+            <option value="Heart">Heart</option>
+            <option value="Thyroid">Thyroid</option>
+            <option value="Testicles">Testicles</option>
+            <option value="Bladder">Bladder</option>
+            <option value="Kidney">Kidney</option>
+            <option value="Pancreas">Pancreas</option>
             <option value="Liver">Liver</option>
-
-            <!-- Add more body part options as needed -->
+            <option value="Rib">Rib</option>
+            <option value="Ankle">Ankle</option>
+            <option value="Elbow">Rib</option>
+            <option value="Spine">Spine</option>
         </select>
         <br><br>
 
         <label for="symptoms">Symptoms:</label>
         <select id="symptoms" name="symptoms" multiple="multiple">
-            <option value="null">Don't select</option>
-            <option value="pain">Pain</option>
-            <option value="bone_protruding">Bone Protruding</option>
-            <option value="ache_pain">Ache Pain</option>
-            <option value="neurological">Neurological</option>
-            <option value="fatigue">Fatigue</option>
-            <option value="headache">Headache</option>
-            <option value="breathing_difficulties">Breathing Difficulties</option>
-            <option value="skin_changes">Skin Changes</option>
-            <option value="nausea">Nausea</option>
-            <option value="changes_in_urination">Changes in Urination</option>
-            <option value="changes_in_vision">Changes in Vision</option>
-            <option value="fever">Fever</option>
-            <option value="swelling">Swelling</option>
-            <option value="limited_mobility">Limited Mobility</option>
-            <option value="cough">Cough</option>
-            <option value="vomiting">Vomiting</option>
-            <option value="blood_in_your_urine">Blood in Your Urine</option>
-            <option value="problems_with_movement">Problems with Movement</option>
-            <option value="speech_difficulty">Speech Difficulty</option>
-            <option value="Head_Truama">Head Trauma</option>
+            <option value="" selected disabled>Select symptoms</option>
+            <option value="null">Don't select</option> 
+            <option value="Pain">Pain</option>
+            <option value="Bone_Protruding">Bone Protruding</option>
+            <option value="Ache_Pain">Ache Pain</option>
+            <option value="Neurological">Neurological</option>
+            <option value="Fatigue">Fatigue</option>
+            <option value="Headache">Headache</option>
+            <option value="Breathing_Difficulties">Breathing Difficulties</option>
+            <option value="Skin_Changes">Skin Changes</option>
+            <option value="Nausea">Nausea</option>
+            <option value="Changes_In_Urination">Changes in Urination</option>
+            <option value="Changes_In_Vision">Changes in Vision</option>
+            <option value="Fever">Fever</option>
+            <option value="Swelling">Swelling</option>
+            <option value="Limited_Mobility">Limited Mobility</option>
+            <option value="Cough">Cough</option>
+            <option value="Vomiting">Vomiting</option>
+            <option value="Blood_In_Urine">Blood in Your Urine</option>
+            <option value="Problems_With_Movement">Problems with Movement</option>
+            <option value="Speech_Difficulty">Speech Difficulty</option>
             <option value="Dizziness">Dizziness</option>
+            <option value="Bone_Spurs">Bone Spurs</option>
+            <option value="Loss_of_Flexibility">Loss of Flexibility</option>
+            <option value="Crepitus">Crepitus</option>
+            <option value="Muscle_Weakness">Muscle Weakness</option>
+            <option value="Weight_Loss">Weight Loss</option>
+            <option value="Night_Sweats">Night Sweats</option>
         </select>
 
         <label for="disease">Disease:</label>
         <select id="disease" name="disease">
             <option value="" selected disabled>Select a disease</option>
-            <option value="cancer">Cancer</option>
-            <option value="bone_fractures">Bone Fractures</option>
-            <option value="pneumonia">Pneumonia</option>
-            <option value="kidney_stones">Kidney Stones</option>
+            <option value="">Don't select</option> 
+            <option value="Cancer">Cancer</option>
+            <option value="Bone_Fractures">Bone Fractures</option>
+            <option value="Pneumonia">Pneumonia</option>
+            <option value="Kidney_Stones">Kidney Stones</option>
             <option value="Head_Trauma">Head Trauma</option>
-            <option value="osteoarthritis">Osteoarthritis</option>
-            <option value="spinal_disc_herniation">Spinal Disc Herniation</option>
-            <option value="osteoporosis">Osteoporosis</option>
-            <option value="tuberculosis">Tuberculosis</option>
-            <option value="traumatic_injuries">Traumatic Injuries</option>
-            <option value="appendicitis">Appendicitis</option>
-            <option value="blood_clots">Blood Clots</option>
-            <option value="abdominal_tumors">Abdominal Tumors</option>
-            <option value="spinal_cord_injuries">Spinal Cord Injuries</option>
-            <option value="stroke">Stroke</option>
-            <option value="joint_injuries">Joint Injuries</option>
+            <option value="Osteoarthritis">Osteoarthritis</option>
+            <option value="Spinal_Disc_Herniation">Spinal Disc Herniation</option>
+            <option value="Osteoporosis">Osteoporosis</option>
+            <option value="Tuberculosis">Tuberculosis</option>
+            <option value="Traumatic_Injuries">Traumatic Injuries</option>
+            <option value="Appendicitis">Appendicitis</option>
+            <option value="Blood_Clots">Blood Clots</option>
+            <option value="Abdominal_Tumors">Abdominal Tumors</option>
+            <option value="Spinal_Cord_Injuries">Spinal Cord Injuries</option>
+            <option value="Stroke">Stroke</option>
+            <option value="Joint_Injuries">Joint Injuries</option>
         </select>
         <br><br>
 
@@ -210,7 +221,7 @@ $('#searchForm').on('submit', function(event) {
         patient_id: id ? parseInt(id) : undefined,
         bodypart: bodyPart !== "" ? bodyPart : undefined,
         disease: disease !== "" ? disease : undefined,
-        symptoms: symptoms,
+        symptom: symptoms,
         targetClasses: targetClasses
     };
 

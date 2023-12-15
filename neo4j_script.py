@@ -33,7 +33,7 @@ class Neo4jConnector:
 
     def search_nodes_by_name(self, name, patient_id, bodyPartName, symptomName, disease_Name, targetClasses=None):
         with self.get_session() as session:
-            inputNames = [name, patient_id , bodyPartName] + symptomName + [disease_Name]
+            inputNames = [value for value in [name, patient_id, bodyPartName] + symptomName + [disease_Name] if value]
             inputNames = [value for value in inputNames if value or value == 0]
             defaultClasses = ["X_ray", "CT", "MRI", "DSI", "US"]
 
@@ -62,20 +62,40 @@ class Neo4jConnector:
             WITH commonTarget, COUNT(DISTINCT node) AS relatedNodeCount, COUNT(DISTINCT symptom) AS relatedsymptom , inputNames, isnameandid, target
             WHERE relatedNodeCount = SIZE(inputNames) - relatedsymptom - isnameandid
             RETURN DISTINCT commonTarget, target;
-
             
             """
 
             parameters = {'inputNames': inputNames, 'targetClasses': targetClasses}
-            
+            logging.info(f"inputNames after processing: {inputNames}")
+            logging.info(f"Executing query with parameters: {parameters}")
+            logging.info(f"Query: {query}")
 
+            session.run(query, parameters=parameters)
             result = session.run(query, parameters=parameters)
             records = list(result)
             serializable_result = []
-            for record in records:
-                commonTarget = record['commonTarget']
-                
-                if isinstance(commonTarget, Node):
+            
+        for record in records:
+            # You have a record which is a dictionary with keys "commonTarget" and "target"
+            commonTarget = record['commonTarget']  # This can be None/null
+            target = record['target']  # This should be a Node object
+            
+            # Initialize an empty dictionary to store node data
+            node_data = {}
+            
+            # If commonTarget is None, handle it by skipping or other logic
+            if commonTarget is None:
+                logging.info("commonTarget is None, handling accordingly.")
+                # You could skip this record, continue, or decide to add the target info anyway
+                # If you choose to add the target info, you'd create a dictionary for it
+                if isinstance(target, Node):
+                    node_data = {
+                        'id': target.id,
+                        'labels': list(target.labels),
+                        'properties': dict(target)
+                    }
+                    serializable_result.append({'nodes': [node_data], 'relationships': []})
+            elif isinstance(commonTarget, Node):
                     # Handle a single Node object
                     node_data = {
                         'id': commonTarget.id,
@@ -84,7 +104,7 @@ class Neo4jConnector:
                     }
                     serializable_result.append({'nodes': [node_data], 'relationships': []})
                 
-                elif isinstance(commonTarget, Relationship):
+            elif isinstance(commonTarget, Relationship):
                 
                     relationship_data = {
                         'id': commonTarget.id,
@@ -93,14 +113,21 @@ class Neo4jConnector:
                     }
                     serializable_result.append({'nodes': [], 'relationships': [relationship_data]})
                 
-                elif isinstance(commonTarget, Path):
+            elif isinstance(commonTarget, Path):
                     
                     nodes = [{'id': node.id, 'labels': list(node.labels), 'properties': dict(node)} for node in commonTarget.nodes]
                     relationships = [{'id': rel.id, 'type': rel.type, 'properties': dict(rel)} for rel in commonTarget.relationships]
                     path_data = {'nodes': nodes, 'relationships': relationships}
                     serializable_result.append(path_data)
-                else:
+            else:
                     
                     logging.error(f"Unhandled type for commonTarget: {type(commonTarget)}")
 
-            return serializable_result
+                
+            # Append the node data to the serializable result
+                    serializable_result.append({'nodes': [node_data], 'relationships': []})
+            
+    # Add logging to debug the loop execution
+            logging.debug(f"Processed record with target id: {node_data.get('id', 'Unknown')}")
+
+        return serializable_result

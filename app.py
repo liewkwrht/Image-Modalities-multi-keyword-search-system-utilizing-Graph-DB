@@ -20,14 +20,14 @@ def search():
     patient_id = data.get('patient_id')
     body_part_name = data.get('bodypart')
     disease_Name = data.get('disease')
-    symptom_name = data.get('symptom', [])
+    symptom_name = data.get('symptoms', [])
     target_classes = data.get('targetClasses')
-    # app.logger.info(f"id received: {patient_id}")
-    # app.logger.info(f"Name received: {name}")
-    # app.logger.info(f"bodypart received: {body_part_name}")
-    # app.logger.info(f"disease received: {disease_Name}")
-    # app.logger.info(f"symptom received: {symptom_name}")
-    # app.logger.info(f"targetClasses received: {target_classes}")
+    app.logger.info(f"id received: {patient_id}")
+    app.logger.info(f"Name received: {name}")
+    app.logger.info(f"bodypart received: {body_part_name}")
+    app.logger.info(f"disease received: {disease_Name}")
+    app.logger.info(f"symptom received: {symptom_name}")
+    app.logger.info(f"targetClasses received: {target_classes}")
 
 
 
