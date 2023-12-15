@@ -15,7 +15,7 @@ class Neo4jConnector:
         if not self._driver:
             try:
                 self._driver = GraphDatabase.driver(self._uri, auth=(self._username, self._password))
-                logging.info("Neo4j Driver connection established.")
+                # logging.info("Neo4j Driver connection established.")
             except Exception as e:
                 logging.error(f"Failed to connect to Neo4j: {e}")
                 raise
@@ -34,7 +34,7 @@ class Neo4jConnector:
     def search_nodes_by_name(self, name, patient_id, bodyPartName, symptomName, disease_Name, targetClasses=None):
         with self.get_session() as session:
             inputNames = [value for value in [name, patient_id, bodyPartName] + symptomName + [disease_Name] if value]
-            inputNames = [value for value in inputNames if value or value == 0]
+            # inputNames = [value for value in inputNames if value or value == 0]
             defaultClasses = ["X_ray", "CT", "MRI", "DSI", "US"]
 
             
@@ -66,11 +66,11 @@ class Neo4jConnector:
             """
 
             parameters = {'inputNames': inputNames, 'targetClasses': targetClasses}
+            # test query are running with correct parameter or not
+
             logging.info(f"inputNames after processing: {inputNames}")
             logging.info(f"Executing query with parameters: {parameters}")
             logging.info(f"Query: {query}")
-
-            session.run(query, parameters=parameters)
             result = session.run(query, parameters=parameters)
             records = list(result)
             serializable_result = []
@@ -85,7 +85,7 @@ class Neo4jConnector:
             
             # If commonTarget is None, handle it by skipping or other logic
             if commonTarget is None:
-                logging.info("commonTarget is None, handling accordingly.")
+                # logging.info("commonTarget is None, handling accordingly.")
                 # You could skip this record, continue, or decide to add the target info anyway
                 # If you choose to add the target info, you'd create a dictionary for it
                 if isinstance(target, Node):
@@ -124,10 +124,10 @@ class Neo4jConnector:
                     logging.error(f"Unhandled type for commonTarget: {type(commonTarget)}")
 
                 
-            # Append the node data to the serializable result
+            #serializable result
                     serializable_result.append({'nodes': [node_data], 'relationships': []})
             
     # Add logging to debug the loop execution
-            logging.debug(f"Processed record with target id: {node_data.get('id', 'Unknown')}")
+            # logging.debug(f"Processed record with target id: {node_data.get('id', 'Unknown')}")
 
         return serializable_result

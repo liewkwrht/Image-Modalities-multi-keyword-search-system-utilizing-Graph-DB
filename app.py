@@ -22,6 +22,7 @@ def search():
     disease_Name = data.get('disease')
     symptom_name = data.get('symptoms', [])
     target_classes = data.get('targetClasses')
+    # test parameter received
     app.logger.info(f"id received: {patient_id}")
     app.logger.info(f"Name received: {name}")
     app.logger.info(f"bodypart received: {body_part_name}")
@@ -30,7 +31,7 @@ def search():
     app.logger.info(f"targetClasses received: {target_classes}")
 
 
-
+    # print time,result
     try:
         start_time = time.time()
         serializable_result = neo4j_connector.search_nodes_by_name(name,patient_id,body_part_name, symptom_name, disease_Name, target_classes)
@@ -45,19 +46,16 @@ def search():
                     nodes_by_label[label].append(node)
                     label_counts[label] += 1
 
-        
-        organized_data = {label: {'count': label_counts[label], 'nodes': nodes} for label, nodes in nodes_by_label.items()}
-        unique_uids = set()
-        for path_data in serializable_result:
-            for node in path_data['nodes']:
-                if 'uid' in node['properties']:
-                    unique_uids.add(node['properties']['uid'])
+        # organized data output
+        organized_data = {label: {'count': label_counts[label], 'nodes': nodes} 
+                            for label, nodes in nodes_by_label.items()}
+        unique_uids = {node['properties']['uid'] for path_data in serializable_result 
+                        for node in path_data['nodes'] if 'uid' in node['properties']}
 
-        uid_count = len(unique_uids)
         response = {
                     "execution_time": execution_time,
                     "data": organized_data, 
-                    "unique_uid_count": uid_count  
+                    "unique_uid_count": len(unique_uids)
                 }
 
 

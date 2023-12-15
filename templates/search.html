@@ -1,84 +1,21 @@
-<!-- search.html -->
-
+<!--search.html-->
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Neo4j Search</title>
-
-    <!-- Include the Select2 CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
-
-    <!-- Include jQuery (required for Select2) -->
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet">
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-
-    <!-- Include the Select2 JavaScript -->
-    <script 
-    src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
     <style>
-        /* Adjust the width of the dropdown container */
-    /* Adjust the width of the dropdown container */
-    #symptoms {
-        width: 300px; /* Adjust the width as needed */
-    }
-</style>
-
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
-
-<script>
-    $(document).ready(function() {
-        // Initialize Select2 for symptoms and targetClasses dropdowns
-        $('#symptoms, #targetClasses').select2({
-            multiple: true,
-            tags: true,
-            tokenSeparators: [','],
-            placeholder: 'Select...'
-        });
-    
-        // Preselect the targetClasses dropdown with the provided values
-        const targetClassesValues = ["X_ray", "CT", "MRI", "DSI", "US"];
-        $('#targetClasses').val(targetClassesValues).trigger('change');
-    
-        // Function to handle the form submission and make an API call
-        $('#searchForm').on('submit', function(event) {
-            event.preventDefault(); // Prevent the default form submission
-            console.log($('#symptoms').val()); // Should log an array of selected symptom values
-            console.log($('#targetClasses').val()); // Should log an array of selected target class values
-            
-            // Get values from form fields
-            const name = $('#name').val();
-            const id = $('#id').val();
-            const disease = $('#disease').val();
-            const bodyPart = $('#bodypart').val();
-            const symptoms = $('#symptoms').val() || [];// Using jQuery for Select2
-            const targetClasses = $('#targetClasses').val() || []; // Using jQuery for Select2
-    
-            // Construct the search data object
-            let searchData = {
-                name: name,
-                patient_id: id ? parseInt(id) : undefined,
-                bodypart: bodyPart !== 'null' ? bodyPart : undefined,
-                disease: disease !== 'null' ? disease : undefined,
-                symptoms: symptoms,
-                targetClasses: targetClasses
-            };
-    
-            // Filter out empty strings and null values
-            searchData = Object.fromEntries(Object.entries(searchData).filter(([_, v]) => v != null && v !== ''));
-    
-            // Redirect to result page with query parameters
-            const searchParams = new URLSearchParams(searchData).toString();
-            window.location.href = `result.html?${searchParams}`;
-        });
-    });
-    </script>
-    
-    
+        #symptoms, #targetClasses {
+            width: 300px;
+        }
+    </style>
 </head>
 <body>
-    <h1>Neo4j Search</h1>
+    <h1>Multi-keyword-search</h1>
     <form id="searchForm" action="result.html" method="GET">
         <label for="name">Name:</label>
         <input type="text" id="name" name="name" placeholder="Enter Name">
@@ -92,7 +29,7 @@
         <select id="bodypart" name = "bodypart">
         <!-- Add more body part options as needed -->
             <option value="" selected disabled>Select Body Part</option>
-            <option value="null">Don't select</option> 
+            <option value="">Don't select</option>
             <option value="Breast">Breast</option>
             <option value="Wrist">Wrist</option>
             <option value="Herniated_Disc">Herniated Disc</option>
@@ -123,8 +60,8 @@
 
         <label for="symptoms">Symptoms:</label>
         <select id="symptoms" name="symptoms" multiple="multiple">
-            <option value="" selected disabled>Select symptoms</option>
-            <option value="null">Don't select</option> 
+            <option></option> 
+            <option value="">Don't select</option> 
             <option value="Pain">Pain</option>
             <option value="Bone_Protruding">Bone Protruding</option>
             <option value="Ache_Pain">Ache Pain</option>
@@ -176,61 +113,68 @@
         </select>
         <br><br>
 
-        <label for="targetClasses">Target Classes:</label>
-        <select id="targetClasses" name="targetClasses" multiple="multiple">
-            <option value="X_ray">X-ray</option>
-            <option value="CT">CT</option>
-            <option value="MRI">MRI</option>
-            <option value="DSI">DSI</option>
-            <option value="US">US</option>
-            <!-- Add more target class options as needed -->
-        </select>
-            <!-- Add more symptom options as needed -->
-            <button type="submit">Search Neo4j</button>
+        <label for="targetClasses">Target Classes:</label><br>
+            <div id="targetClasses">
+                <button type="button" id="selectAll">Select All</button>
+            <div></div>
+            <input type="checkbox" id="xray" name="targetClasses" value="X_ray">
+            <label for="xray">X-ray</label><br>
+
+            <input type="checkbox" id="ct" name="targetClasses" value="CT">
+            <label for="ct">CT</label><br>
+
+            <input type="checkbox" id="mri" name="targetClasses" value="MRI">
+            <label for="mri">MRI</label><br>
+
+            <input type="checkbox" id="dsi" name="targetClasses" value="DSI">
+            <label for="dsi">DSI</label><br>
+
+            <input type="checkbox" id="us" name="targetClasses" value="US">
+            <label for="us">US</label><br>
+            </div>
+        <button type="submit">Search</button>
+            
         <script>
-            // Initialize Select2 on the symptoms dropdown
             $(document).ready(function() {
+                // Initialize Select2 component for the symptoms dropdown
                 $('#symptoms').select2({
+                    placeholder: "Select symptoms", // This sets the placeholder
+                    allowClear: true, // This allows a clear button to appear
                     multiple: true,
                     tags: true,
-                    tokenSeparators: [','],
-                    placeholder: 'Select symptoms'
+                    tokenSeparators: [',']
+                });
+        
+                // Form submission handler
+                $('#searchForm').on('submit', function(event) {
+                    event.preventDefault();
+                    const formData = {
+                        name: $('#name').val(),
+                        patient_id: $('#id').val(),
+                        bodypart: $('#bodypart').val(),
+                        disease: $('#disease').val(),
+                        symptoms: $('#symptoms').val() || [],
+                        targetClasses: []
+                    };
+                    $('#selectAll').click(function() {
+                    $('#targetClasses input[type="checkbox"]').prop('checked', true);
+                    });
+        
+                    // Get the values of checked targetClasses checkboxes
+                    $('input[name="targetClasses"]:checked').each(function() {
+                        formData.targetClasses.push(this.value);
+                    });
+        
+                    // Filter out empty or null values
+                    const searchData = Object.fromEntries(Object.entries(formData).filter(([_, v]) => v));
+        
+                    // Redirect to the results page with query parameters
+                    const searchParams = new URLSearchParams(searchData).toString();
+                    window.location.href = `result.html?${searchParams}`;
                 });
             });
-            const targetClassesValues = ["X_ray", "CT", "MRI", "DSI", "US"];
-            $('#targetClasses').val(targetClassesValues).trigger('change');
+            
 
-
-    // Function to handle the form submission and make an API call
-$('#searchForm').on('submit', function(event) {
-        // Prevent the default form submission if you handle the form data with JavaScript
-    event.preventDefault();
-    console.log($('#symptoms').val()); // Should log an array of selected symptom values
-    console.log($('#targetClasses').val());
-    // Get values from form fields
-    const name = document.getElementById('name').value;
-    const id = document.getElementById('id').value;
-    const disease = document.getElementById('disease').value;
-    const bodyPart = document.getElementById('body_part').value;
-    const symptoms = $('#symptoms').val() || []; // Using jQuery for Select2
-    const targetClasses = $('#targetClasses').val() || []; // Using jQuery for Select2
-
-    // Construct the search data object
-    let searchData = {
-        name: name,
-        patient_id: id ? parseInt(id) : undefined,
-        bodypart: bodyPart !== "" ? bodyPart : undefined,
-        disease: disease !== "" ? disease : undefined,
-        symptom: symptoms,
-        targetClasses: targetClasses
-    };
-
-    // Filter out empty strings and null values
-    searchData = Object.fromEntries(Object.entries(searchData).filter(([_, v]) => v != null && v !== ''));
-
-    // Redirect to result page with query parameters
-    const searchParams = new URLSearchParams(searchData).toString();
-    window.location.href = `result.html?${searchParams}`;
-})
-,
-document.getElementById('searchForm').addEventListener('submit', searchNeo4j)
+        </script>
+</body>
+</html>
