@@ -8,7 +8,7 @@ Kavinrath 	Jundang 		6422781516
 
 tools : python,java,Neo4j,html
 
-run flask-run for start
+flask run for start
 
 If you get an error, check the following:
 1.Ensure Python is installed.
