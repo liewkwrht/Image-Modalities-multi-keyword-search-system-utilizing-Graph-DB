@@ -45,23 +45,37 @@ class Neo4jConnector:
 
             
             query += """ 
-            OPTIONAL MATCH (n:Name)
+            OPTIONAL MATCH (name:Name)-[:Own_image]->(target1)
+            WHERE name.name IN inputNames OR name.id IN inputNames AND LABELS(target1)[0] IN targetClasses
 
-            WITH inputNames, targetClasses, CASE WHEN n.name IN inputNames AND n.id IN inputNames THEN 1 ELSE 0 END AS isnameandid 
-            OPTIONAL MATCH p1 = (node:BodyPart|Disease|Name)-[:Risk|AssociatedWith|Indicate|Affect|Own_image|Has_image*1]->(target)
-            WHERE (node.name IN inputNames OR node.id IN inputNames) AND LABELS(target)[0] IN targetClasses
+            OPTIONAL MATCH (disease:Disease)-[:Has_image]->(target2)
+            WHERE disease.name IN inputNames AND LABELS(target2)[0] IN targetClasses
 
-            WITH target AS commonTarget, p1, inputNames, targetClasses, node, isnameandid 
+            OPTIONAL MATCH (bodyPart:BodyPart)-[:AssociatedWith]->(target3)
+            WHERE bodyPart.name IN inputNames AND LABELS(target3)[0] IN targetClasses
 
-            OPTIONAL MATCH p2 = (symptom:Symptom)-[:Indicate]->(disease:Disease)-[:Has_image*1]->(target)
-            WHERE symptom.name IN inputNames AND LABELS(target)[0] IN targetClasses AND (commonTarget IS NULL OR target = commonTarget)
+            OPTIONAL MATCH (symptom:Symptom)-[:Indicate]->(:Disease)-[:Has_image]->(target4)
+            WHERE symptom.name IN inputNames AND LABELS(target4)[0] IN targetClasses
 
-            WITH commonTarget, COLLECT(DISTINCT p1) AS paths1, COLLECT(DISTINCT p2) AS paths2, node, inputNames, symptom, isnameandid , target
-            WHERE ANY(path IN paths1 WHERE path IS NOT NULL) OR ANY(path IN paths2 WHERE path IS NOT NULL)
+            WITH target1, target2, target3, target4,
+            CASE WHEN target1 IS NULL THEN 0 ELSE 1 END +
+            CASE WHEN target2 IS NULL THEN 0 ELSE 1 END +
+            CASE WHEN target3 IS NULL THEN 0 ELSE 1 END +
+            CASE WHEN target4 IS NULL THEN 0 ELSE 1 END AS notnullTargetCount,
+            COLLECT(DISTINCT target1) AS targets1, 
+            COLLECT(DISTINCT target2) AS targets2,
+            COLLECT(DISTINCT target3) AS targets3, 
+            COLLECT(DISTINCT target4) AS targets4
 
-            WITH commonTarget, COUNT(DISTINCT node) AS relatedNodeCount, COUNT(DISTINCT symptom) AS relatedsymptom , inputNames, isnameandid, target
-            WHERE relatedNodeCount = SIZE(inputNames) - relatedsymptom - isnameandid
-            RETURN DISTINCT commonTarget, target;
+            WITH 
+            targets1 + targets2 + targets3 + targets4 AS allTargets,
+            notnullTargetCount, target1
+
+            WITH allTargets, notnullTargetCount, apoc.coll.frequencies(allTargets) AS nodeFrequencies
+
+            WITH [entry IN nodeFrequencies | CASE WHEN entry.count = notnullTargetCount THEN entry.item END] AS filteredNodes
+
+            RETURN DISTINCT filteredNodes
             
             """
 
@@ -69,65 +83,36 @@ class Neo4jConnector:
             # test query are running with correct parameter or not
 
             # logging.info(f"inputNames after processing: {inputNames}")
-            # logging.info(f"Executing query with parameters: {parameters}")
-            # logging.info(f"Query: {query}")
+            logging.info(f"Executing query with parameters: {parameters}")
+            logging.info(f"Query: {query}")
             result = session.run(query, parameters=parameters)
             records = list(result)
             serializable_result = []
             
         for record in records:
-            # You have a record which is a dictionary with keys "commonTarget" and "target"
-            commonTarget = record['commonTarget']  # This can be None/null
-            target = record['target']  # This should be a Node object
-            
-            # Initialize an empty dictionary to store node data
-            node_data = {}
-            
-            # If commonTarget is None, handle it by skipping or other logic
-            if commonTarget is None:
-                # logging.info("commonTarget is None, handling accordingly.")
-                # You could skip this record, continue, or decide to add the target info anyway
-                # If you choose to add the target info, you'd create a dictionary for it
-                if isinstance(target, Node):
-                    node_data = {
-                        'id': target.id,
-                        'labels': list(target.labels),
-                        'properties': dict(target)
-                    }
-                    serializable_result.append({'nodes': [node_data], 'relationships': []})
-            elif isinstance(commonTarget, Node):
-                    # Handle a single Node object
-                    node_data = {
-                        'id': commonTarget.id,
-                        'labels': list(commonTarget.labels),
-                        'properties': dict(commonTarget)
-                    }
-                    serializable_result.append({'nodes': [node_data], 'relationships': []})
-                
-            elif isinstance(commonTarget, Relationship):
-                
-                    relationship_data = {
-                        'id': commonTarget.id,
-                        'type': commonTarget.type,
-                        'properties': dict(commonTarget)
-                    }
-                    serializable_result.append({'nodes': [], 'relationships': [relationship_data]})
-                
-            elif isinstance(commonTarget, Path):
-                    
-                    nodes = [{'id': node.id, 'labels': list(node.labels), 'properties': dict(node)} for node in commonTarget.nodes]
-                    relationships = [{'id': rel.id, 'type': rel.type, 'properties': dict(rel)} for rel in commonTarget.relationships]
-                    path_data = {'nodes': nodes, 'relationships': relationships}
-                    serializable_result.append(path_data)
+            filteredNodes = record['filteredNodes']  # This can be a list or None
+            if filteredNodes:
+                for node in filteredNodes:
+                    if isinstance(node, Node):
+                        # Handle Node object
+                        node_data = {
+                            'id': node.id,
+                            'labels': list(node.labels),
+                            'properties': dict(node)
+                        }
+                        serializable_result.append({'nodes': [node_data], 'relationships': []})
+                    elif isinstance(node, Relationship):
+                        # Handle Relationship object
+                        relationship_data = {
+                            'id': node.id,
+                            'type': node.type,
+                            'properties': dict(node)
+                        }
+                        serializable_result.append({'nodes': [], 'relationships': [relationship_data]})
+                    # Add more conditions if needed, like for Path objects
             else:
-                    
-                    logging.error(f"Unhandled type for commonTarget: {type(commonTarget)}")
-
-                
-            #serializable result
-                    serializable_result.append({'nodes': [node_data], 'relationships': []})
-            
-    # Add logging to debug the loop execution
-            # logging.debug(f"Processed record with target id: {node_data.get('id', 'Unknown')}")
+                # Handle the case where filteredNodes is None or empty
+                logging.info("No nodes found for the given criteria.")
+                # Optionally add more logic here if needed
 
         return serializable_result
