@@ -68,9 +68,9 @@ class Neo4jConnector:
             parameters = {'inputNames': inputNames, 'targetClasses': targetClasses}
             # test query are running with correct parameter or not
 
-            logging.info(f"inputNames after processing: {inputNames}")
-            logging.info(f"Executing query with parameters: {parameters}")
-            logging.info(f"Query: {query}")
+            # logging.info(f"inputNames after processing: {inputNames}")
+            # logging.info(f"Executing query with parameters: {parameters}")
+            # logging.info(f"Query: {query}")
             result = session.run(query, parameters=parameters)
             records = list(result)
             serializable_result = []
